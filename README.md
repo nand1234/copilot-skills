@@ -1,4 +1,4 @@
-# copilot-skills
+# copilot skills & agents
 predefined skills for frontend and php backend code reviewer
 
 # to add skills to copilot run
