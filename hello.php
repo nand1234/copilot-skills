@@ -4,30 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Models\Skill;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Validator;
 
 class SkillController extends Controller
 {
     /**
      * Display a listing of the skills.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        $skills = Skill::all();
-        return response()->json($skills);
+        // Added pagination; returning All records can crash your app if the list grows.
+        return response()->json(Skill::paginate(15));
     }
 
     /**
      * Store a newly created skill in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        // 1. Validation Logic
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'level' => 'required|integer|min:1|max:10',
+            'name'  => 'required|string|max:255|unique:skills,name',
+            'level' => 'required|integer|between:1,10',
         ]);
 
-        // 2. Creation Logic
         $skill = Skill::create($validated);
 
         return response()->json($skill, 201);
@@ -35,30 +35,26 @@ class SkillController extends Controller
 
     /**
      * Display the specified skill.
+     * Use Route Model Binding for cleaner code.
      */
-    public function show($id)
+    public function show(Skill $skill): JsonResponse
     {
-        $skill = Skill::find($id);
-        
-        if (!$skill) {
-            return response()->json(['message' => 'Skill not found'], 404);
-        }
-
         return response()->json($skill);
     }
 
     /**
      * Update the specified skill in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Skill $skill): JsonResponse
     {
-        $skill = Skill::find($id);
+        // FIX: Never use $request->all() in update. 
+        // It allows users to inject data into columns you didn't intend to change.
+        $validated = $request->validate([
+            'name'  => 'string|max:255|unique:skills,name,' . $skill->id,
+            'level' => 'integer|between:1,10',
+        ]);
 
-        if (!$skill) {
-            return response()->json(['message' => 'Not found'], 404);
-        }
-
-        $skill->update($request->all());
+        $skill->update($validated);
 
         return response()->json($skill);
     }
@@ -66,15 +62,9 @@ class SkillController extends Controller
     /**
      * Remove the specified skill from storage.
      */
-    public function destroy($id)
+    public function destroy(Skill $skill): JsonResponse
     {
-        $skill = Skill::find($id);
-        
-        if ($skill) {
-            $skill->delete();
-            return response()->json(['message' => 'Deleted successfully']);
-        }
-
-        return response()->json(['message' => 'Already gone or never existed'], 404);
+        $skill->delete();
+        return response()->json(['message' => 'Deleted successfully'], 200);
     }
 }

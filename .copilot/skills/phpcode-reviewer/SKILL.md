@@ -1,5 +1,5 @@
 ---
-name: smartbox-phpcode-reviewer
+name: phpcode-reviewer
 description: Reviews PHP backend code changes based on git diff, checking for best practices, security vulnerabilities, performance issues, and code quality standards. Use when asked to review PHP code, backend code, or perform smartbox review.
 version: 1.0.0
 ---
